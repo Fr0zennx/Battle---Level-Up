@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import './App.css'
-import { useCurrentAccount, useSignAndExecuteTransactionBlock, ConnectButton, useSuiClient } from '@mysten/dapp-kit'
+import { useCurrentAccount, useSignAndExecuteTransactionBlock, ConnectButton, useSuiClient, useSuiClientQuery } from '@mysten/dapp-kit'
 import { Transaction } from '@mysten/sui/transactions'
 
 // PACKAGE_ID'yi Testnet'e publish ettikten sonra buraya yapıştırın
@@ -32,6 +32,44 @@ function App() {
   const [loading, setLoading] = useState(false)
   const [checkingHero, setCheckingHero] = useState(false)
   const [notifications, setNotifications] = useState<Notification[]>([])
+
+  // Blockchain'den hero verilerini çekmek için query
+  const { data: heroObjectData, refetch: refetchHeroData, isPending: isFetchingHero } = useSuiClientQuery(
+    'getObject',
+    hero?.id ? {
+      id: hero.id,
+      options: {
+        showContent: true,
+      },
+    } : null,
+    {
+      enabled: !!hero?.id,
+      refetchInterval: 2000, // Her 2 saniyede bir otomatik refetch
+    }
+  )
+
+  // Hero object'ini parse et ve state'i güncelle
+  useEffect(() => {
+    if (heroObjectData?.data?.content?.dataType === 'moveObject' && hero) {
+      const heroData = heroObjectData.data.content.fields as any
+      const updatedHero: Hero = {
+        id: hero.id,
+        name: heroData.name || hero.name,
+        hp: heroData.hp || 0,
+        xp: heroData.xp || 0,
+        level: heroData.level || 1,
+      }
+      
+      // Sadece veriler gerçekten değişmişse güncelle
+      if (
+        updatedHero.hp !== hero.hp ||
+        updatedHero.xp !== hero.xp ||
+        updatedHero.level !== hero.level
+      ) {
+        setHero(updatedHero)
+      }
+    }
+  }, [heroObjectData])
 
   // Notification sistem
   const addNotification = (message: string, type: 'success' | 'error' | 'info' | 'battle' = 'info', duration = 3000) => {
@@ -159,38 +197,14 @@ function App() {
       {
         onSuccess: (result: any) => {
           console.log('Battle result:', result)
-          setHero(prev => {
-            if (!prev) return prev
-            const newXp = prev.xp + 20
-            const newHp = Math.max(0, prev.hp - 20)
-            let leveledUp = false
-
-            let updatedHero = {
-              ...prev,
-              hp: newHp,
-              xp: newXp,
-            }
-
-            if (newXp >= 100) {
-              updatedHero = {
-                ...updatedHero,
-                hp: 100,
-                xp: 0,
-                level: prev.level + 1,
-              }
-              leveledUp = true
-            }
-
-            // Bildirim gönder
-            if (leveledUp) {
-              addNotification(`🎉 LEVEL UP! Seviye ${updatedHero.level} oldu!`, 'battle', 3000)
-            } else {
-              addNotification(`⚔️ Savaş Kazanıldı! ⭐ XP +20 | ❤️ HP -20`, 'battle', 2500)
-            }
-
-            return updatedHero
-          })
+          
+          // Blockchain'den veriyi güncelle
+          setTimeout(() => {
+            refetchHeroData()
+          }, 500)
+          
           setLoading(false)
+          addNotification(`⚔️ Savaş Kazanıldı! ⭐ XP +20 | ❤️ HP -20`, 'battle', 2500)
         },
         onError: (error: any) => {
           console.error('Error:', error)
@@ -218,7 +232,12 @@ function App() {
       {
         onSuccess: (result: any) => {
           console.log('Heal result:', result)
-          setHero(prev => prev ? { ...prev, hp: 100 } : null)
+          
+          // Blockchain'den veriyi güncelle
+          setTimeout(() => {
+            refetchHeroData()
+          }, 500)
+          
           setLoading(false)
           addNotification(`💚 İyileşildi! HP 100'e döndürüldü!`, 'success', 2000)
         },
