@@ -4,54 +4,38 @@ module battle_and_level_up::game {
     use sui::transfer;
     use std::string::{String, utf8};
 
-    /* --- VERİ YAPISI --- */
-
+    /* --- CHAPTER 1: DATA STRUCTURE --- */
+    /// Mission: Define the attributes a Hero should have.
     public struct Hero has key, store {
         id: UID,
         name: String,
-        hp: u64,
-        xp: u64,
-        level: u64,
+        // TODO: Add hp, xp, and level fields here (all u64)
     }
 
-    /* --- FONKSİYONLAR --- */
-
-    // 1. Kahraman Oluşturma (Mint)
+    /* --- CHAPTER 2: MINTING (CREATION) --- */
+    /// Mission: Create a new Hero object and transfer it to the sender.
     public fun create_hero(name: vector<u8>, ctx: &mut TxContext) {
-        let hero = Hero {
-            id: sui::object::new(ctx),
-            name: utf8(name),
-            hp: 100,
-            xp: 0,
-            level: 1,
-        };
-        transfer::public_transfer(hero, sui::tx_context::sender(ctx));
+        // TODO: 1. Initialize a new Hero object with default values
+        // (HP: 100, XP: 0, Level: 1)
+        
+        // TODO: 2. Transfer the hero to the transaction sender 
+        // using transfer::public_transfer
     }
 
-    // 2. Savaş Mantığı (Hero vs Bot)
-    // &mut Hero kullanarak kahramanı güncelliyoruz.
+    /* --- CHAPTER 3: BATTLE LOGIC --- */
+    /// Mission: Implement XP gain, HP loss, and level-up checks.
     public fun battle(hero: &mut Hero) {
-        // Can kontrolü: Canı bitmiş bir kahraman savaşamaz.
-        assert!(hero.hp >= 20, 101); 
-
-        // Savaş simülasyonu:
-        // Şimdilik her savaşı kazandığını ve 20 XP aldığını varsayıyoruz.
-        // Karşılığında bot kahramana 20 hasar veriyor.
-        hero.xp = hero.xp + 20;
-        hero.hp = hero.hp - 20;
-
-        // Seviye Atlama: 100 XP'ye ulaşınca seviye artar, HP dolar.
-        if (hero.xp >= 100) {
-            hero.level = hero.level + 1;
-            hero.xp = 0;
-            hero.hp = 100;
-        };
+        // TODO: 1. Add an assertion to check if the hero's HP is high enough to fight (e.g., >= 20)
+        
+        // TODO: 2. Simulate the battle by increasing XP and decreasing HP
+        
+        // TODO: 3. Create a Level Up condition: 
+        // If XP reaches 100, increase Level, reset XP to 0, and restore HP to 100.
     }
 
-    // 3. İyileşme (Heal)
+    /* --- CHAPTER 4: HEALING --- */
+    /// Mission: Restore the hero's health (HP) to its maximum value.
     public fun heal(hero: &mut Hero) {
-        hero.hp = 100;
+        // TODO: Update the hero's HP field back to 100
     }
 }
-
-
