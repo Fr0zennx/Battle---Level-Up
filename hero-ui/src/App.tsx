@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import './App.css'
-import { useCurrentAccount, useSignAndExecuteTransactionBlock, ConnectButton } from '@mysten/dapp-kit'
+import { useCurrentAccount, useSignAndExecuteTransactionBlock, ConnectButton, useSuiClient } from '@mysten/dapp-kit'
 import { Transaction } from '@mysten/sui/transactions'
 
 // PACKAGE_ID'yi Testnet'e publish ettikten sonra buraya yapıştırın
@@ -17,11 +17,59 @@ interface Hero {
 
 function App() {
   const account = useCurrentAccount()
+  const suiClient = useSuiClient()
   const { mutate: signAndExecuteTransactionBlock } = useSignAndExecuteTransactionBlock()
   
   const [hero, setHero] = useState<Hero | null>(null)
   const [heroName, setHeroName] = useState('')
   const [loading, setLoading] = useState(false)
+  const [checkingHero, setCheckingHero] = useState(false)
+
+  // Cüzdandaki Hero nesnelerini kontrol et
+  useEffect(() => {
+    if (!account) {
+      setHero(null)
+      return
+    }
+
+    const checkHeroes = async () => {
+      setCheckingHero(true)
+      try {
+        const objects = await suiClient.getOwnedObjects({
+          owner: account.address,
+          filter: {
+            StructType: `${PACKAGE_ID}::${MODULE_NAME}::Hero`,
+          },
+          options: {
+            showContent: true,
+          },
+        })
+
+        if (objects.data && objects.data.length > 0) {
+          const heroObj = objects.data[0]
+          if (heroObj.data?.content?.dataType === 'moveObject') {
+            const heroData = heroObj.data.content.fields as any
+            setHero({
+              id: heroObj.data.objectId,
+              name: heroData.name || 'Unknown',
+              hp: heroData.hp || 100,
+              xp: heroData.xp || 0,
+              level: heroData.level || 1,
+            })
+          }
+        } else {
+          setHero(null)
+        }
+      } catch (error) {
+        console.error('Error checking heroes:', error)
+        setHero(null)
+      } finally {
+        setCheckingHero(false)
+      }
+    }
+
+    checkHeroes()
+  }, [account, suiClient])
 
   // Kahraman oluşturma
   const handleCreateHero = () => {
@@ -33,7 +81,7 @@ function App() {
     setLoading(true)
     const tx = new Transaction()
     
-    // String'i vektöre çevir
+    // String'i u8 vektörüne çevir
     const heroNameBytes = Array.from(heroName).map(c => c.charCodeAt(0))
     
     tx.moveCall({
@@ -46,6 +94,7 @@ function App() {
       {
         onSuccess: (result: any) => {
           console.log('Hero created:', result)
+          // Yeni hero'yu state'e ekle
           const newHero: Hero = {
             id: result.digest || Math.random().toString(36).substring(7),
             name: heroName,
@@ -56,11 +105,15 @@ function App() {
           setHero(newHero)
           setHeroName('')
           setLoading(false)
-          alert('Kahraman başarıyla oluşturuldu!')
+          alert('⭐ Kahraman başarıyla oluşturuldu!')
+          // Hero listesini yenile
+          setTimeout(() => {
+            window.location.reload()
+          }, 1500)
         },
         onError: (error: any) => {
           console.error('Error:', error)
-          alert('Hata: ' + error.message)
+          alert('❌ Hata: ' + (error.message || 'Kahraman oluşturulamadı'))
           setLoading(false)
         }
       }
@@ -105,11 +158,11 @@ function App() {
             }
           })
           setLoading(false)
-          alert('Savaş tamamlandı!')
+          alert('⚔️ Savaş tamamlandı!')
         },
         onError: (error: any) => {
           console.error('Error:', error)
-          alert('Hata: ' + error.message)
+          alert('❌ Savaş hatası: ' + (error.message || 'Savaş yapılamadı'))
           setLoading(false)
         }
       }
@@ -135,11 +188,11 @@ function App() {
           console.log('Heal result:', result)
           setHero(prev => prev ? { ...prev, hp: 100 } : null)
           setLoading(false)
-          alert('İyileşildi!')
+          alert('💚 İyileşildi!')
         },
         onError: (error: any) => {
           console.error('Error:', error)
-          alert('Hata: ' + error.message)
+          alert('❌ İyileşme hatası: ' + (error.message || 'İyileşilemedi'))
           setLoading(false)
         }
       }
@@ -159,23 +212,35 @@ function App() {
       <div className="content">
         {!account ? (
           <div className="wallet-section">
-            <h2>Başlamak için Cüzdanınızı Bağlayın</h2>
-            <p>Sağ üstteki buton ile cüzdanınızı bağlayın ve oyuna başlayın.</p>
+            <h2>👛 Cüzdanı Bağla</h2>
+            <p>Oyuna başlamak için sağ üstteki buton ile Sui cüzdanınızı bağlayın.</p>
+          </div>
+        ) : checkingHero ? (
+          <div className="wallet-section">
+            <h2>⏳ Yükleniyor...</h2>
+            <p>Cüzdanınız kontrol ediliyor...</p>
           </div>
         ) : !hero ? (
           <div className="hero-creation">
-            <h2>Yeni Kahraman Oluştur</h2>
+            <h2>⭐ Yeni Kahraman Oluştur</h2>
+            <p style={{ marginBottom: '20px', opacity: 0.8 }}>
+              Oyuna başlamak için ilk kahramanınızı oluşturun.
+            </p>
             <input
               type="text"
               placeholder="Kahraman adını girin..."
               value={heroName}
               onChange={(e) => setHeroName(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleCreateHero()}
+              onKeyPress={(e) => e.key === 'Enter' && !loading && handleCreateHero()}
               disabled={loading}
+              maxLength={20}
             />
             <button className="btn btn-success" onClick={handleCreateHero} disabled={loading}>
-              {loading ? '⭐ Oluşturuluyor...' : '⭐ Kahraman Oluştur'}
+              {loading ? '⏳ Oluşturuluyor...' : '⭐ Kahraman Oluştur'}
             </button>
+            <p style={{ marginTop: '15px', fontSize: '0.9em', opacity: 0.7 }}>
+              💡 Kahraman adı maksimum 20 karakter olabilir.
+            </p>
           </div>
         ) : (
           <div className="hero-panel">
@@ -223,6 +288,10 @@ function App() {
             <button className="btn btn-secondary" onClick={() => setHero(null)} disabled={loading}>
               Yeni Kahraman Oluştur
             </button>
+
+            <div style={{ marginTop: '20px', padding: '10px', background: 'rgba(0,0,0,0.05)', borderRadius: '8px', fontSize: '0.85em', opacity: 0.7 }}>
+              <p>Hero ID: <code style={{ fontSize: '0.8em' }}>{hero.id.substring(0, 16)}...</code></p>
+            </div>
           </div>
         )}
       </div>
@@ -230,7 +299,7 @@ function App() {
       <footer className="app-footer">
         <p>🚀 Sui Move Smart Contract ile yapılmıştır</p>
         <p className="package-info">
-          Package ID: <code>{PACKAGE_ID}</code>
+          Package ID: <code>{PACKAGE_ID.substring(0, 16)}...</code>
         </p>
       </footer>
     </div>
