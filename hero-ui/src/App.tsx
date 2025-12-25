@@ -244,32 +244,66 @@ function App() {
           </div>
         ) : (
           <div className="hero-panel">
-            <div className="hero-card">
-              <h2>{hero.name}</h2>
-              <div className="hero-stats">
-                <div className="stat">
-                  <span className="label">❤️ HP:</span>
-                  <span className="value">{hero.hp}/100</span>
-                </div>
-                <div className="stat">
-                  <span className="label">⭐ XP:</span>
-                  <span className="value">{hero.xp}/100</span>
-                </div>
-                <div className="stat">
-                  <span className="label">📊 Level:</span>
-                  <span className="value">{hero.level}</span>
+            <div className="battlefield">
+              {/* Sol Taraf - Kahraman */}
+              <div className="battlefield-left">
+                <div className="hero-card">
+                  <h2>🗡️ {hero.name}</h2>
+                  <div className="hero-stats">
+                    <div className="stat">
+                      <span className="label">❤️ HP:</span>
+                      <span className="value">{hero.hp}/100</span>
+                    </div>
+                    <div className="stat">
+                      <span className="label">⭐ XP:</span>
+                      <span className="value">{hero.xp}/100</span>
+                    </div>
+                    <div className="stat">
+                      <span className="label">📊 Level:</span>
+                      <span className="value">{hero.level}</span>
+                    </div>
+                  </div>
+
+                  <div className="hp-bar">
+                    <div className="hp-fill" style={{ width: `${hero.hp}%` }}></div>
+                  </div>
+
+                  <div className="xp-bar">
+                    <div className="xp-fill" style={{ width: `${hero.xp}%` }}></div>
+                  </div>
                 </div>
               </div>
 
-              <div className="hp-bar">
-                <div className="hp-fill" style={{ width: `${hero.hp}%` }}></div>
+              {/* Ortada VS */}
+              <div className="battlefield-center">
+                <div className="vs-text">VS</div>
               </div>
 
-              <div className="xp-bar">
-                <div className="xp-fill" style={{ width: `${hero.xp}%` }}></div>
+              {/* Sağ Taraf - Bot/Düşman */}
+              <div className="battlefield-right">
+                <div className="enemy-card">
+                  <div className="enemy-avatar">
+                    <span className="enemy-emoji">🐉</span>
+                  </div>
+                  <h2>Bot Düşman</h2>
+                  <div className="enemy-stats">
+                    <div className="stat">
+                      <span className="label">HP:</span>
+                      <span className="value">100/100</span>
+                    </div>
+                    <div className="stat">
+                      <span className="label">Level:</span>
+                      <span className="value">{Math.floor(hero.level / 2) + 1}</span>
+                    </div>
+                  </div>
+                  <div className="hp-bar">
+                    <div className="hp-fill" style={{ width: '100%' }}></div>
+                  </div>
+                </div>
               </div>
             </div>
 
+            {/* Action Buttons */}
             <div className="action-buttons">
               <button className="btn btn-danger" onClick={handleBattle} disabled={loading || hero.hp < 20}>
                 {loading ? '⚔️ Savaş Devam Ediyor...' : '⚔️ Savaş Yap'}
