@@ -8,6 +8,86 @@
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+.notification-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 400px;
+}
+
+.notification {
+  padding: 16px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  font-weight: 500;
+  animation: slideIn 0.3s ease-out;
+  backdrop-filter: blur(10px);
+  word-wrap: break-word;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+}
+
+.notification-success {
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  color: white;
+  border-left: 4px solid #38ef7d;
+}
+
+.notification-error {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+  color: white;
+  border-left: 4px solid #ff6b6b;
+}
+
+.notification-info {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: white;
+  border-left: 4px solid #4facfe;
+}
+
+.notification-battle {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+  border-left: 4px solid #f5576c;
+  animation: slideBattle 0.4s ease-out;
+  font-size: 1.05em;
+}
+
+@keyframes slideBattle {
+  from {
+    transform: translateX(400px) scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+}
+
 .app-header {
   text-align: center;
   color: white;
@@ -151,6 +231,7 @@
   transition: all 0.3s ease;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  position: relative;
 }
 
 .btn:hover:not(:disabled) {
@@ -161,6 +242,24 @@
 .btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.btn[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: -35px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.8);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 0.85em;
+  white-space: nowrap;
+  z-index: 100;
+  font-weight: normal;
+  text-transform: none;
+  letter-spacing: normal;
 }
 
 .btn-primary {
