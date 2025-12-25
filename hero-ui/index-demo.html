@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Battle & Level Up</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .app-container {
+            max-width: 500px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .app-header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            width: 100%;
+        }
+
+        .app-header h1 {
+            font-size: 3em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
+        }
+
+        .app-header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            width: 100%;
+        }
+
+        .content h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .wallet-section input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            font-size: 1em;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+        }
+
+        .wallet-section input:focus {
+            outline: none;
+            border-color: #764ba2;
+            box-shadow: 0 0 10px rgba(118, 75, 162, 0.3);
+        }
+
+        .hero-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border-radius: 12px;
+            padding: 20px;
+            color: white;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .hero-card h2 {
+            margin: 0 0 15px 0;
+            color: white;
+            font-size: 1.8em;
+        }
+
+        .hero-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .stat {
+            background: rgba(255,255,255,0.2);
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .stat .label {
+            display: block;
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .stat .value {
+            display: block;
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .hp-bar, .xp-bar {
+            width: 100%;
+            height: 20px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+
+        .hp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff00, #ffff00);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        .xp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4169E1, #FFD700);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            width: 100%;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            color: white;
+            width: 100%;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: white;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #ccc;
+            color: #333;
+            width: 100%;
+        }
+
+        .game-over {
+            background: rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            color: #d32f2f;
+            font-weight: bold;
+            font-size: 1.2em;
+            text-align: center;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .app-footer {
+            margin-top: 40px;
+            color: white;
+            text-align: center;
+            opacity: 0.8;
+        }
+
+        .app-footer p {
+            margin: 5px 0;
+            font-size: 0.9em;
+        }
+
+        .package-info code {
+            background: rgba(255,255,255,0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="app-header">
+            <h1>⚔️ Battle & Level Up</h1>
+            <p>Sui'de Kahraman Oyunu</p>
+        </div>
+
+        <div class="content">
+            <!-- Cüzdan Bağlama Bölümü -->
+            <div id="walletSection" class="wallet-section">
+                <h2>Başlamak için Cüzdanınızı Bağlayın</h2>
+                <button class="btn btn-primary" onclick="connectWallet()">
+                    Cüzdan Bağla
+                </button>
+            </div>
+
+            <!-- Kahraman Oluşturma Bölümü -->
+            <div id="heroCreation" class="hero-creation hidden">
+                <h2>Yeni Kahraman Oluştur</h2>
+                <input 
+                    type="text" 
+                    id="heroNameInput"
+                    placeholder="Kahraman adını girin..."
+                    onkeypress="if(event.key==='Enter') createHero()"
+                >
+                <button class="btn btn-success" onclick="createHero()">
+                    ⭐ Kahraman Oluştur
+                </button>
+            </div>
+
+            <!-- Kahraman Paneli -->
+            <div id="heroPanel" class="hero-panel hidden">
+                <div class="hero-card">
+                    <h2 id="heroName"></h2>
+                    <div class="hero-stats">
+                        <div class="stat">
+                            <span class="label">❤️ HP:</span>
+                            <span class="value" id="heroHp">100/100</span>
+                        </div>
+                        <div class="stat">
+                            <span class="label">⭐ XP:</span>
+                            <span class="value" id="heroXp">0/100</span>
+                        </div>
+                        <div class="stat">
+                            <span class="label">📊 Level:</span>
+                            <span class="value" id="heroLevel">1</span>
+                        </div>
+                    </div>
+
+                    <div class="hp-bar">
+                        <div class="hp-fill" id="hpFill" style="width: 100%"></div>
+                    </div>
+
+                    <div class="xp-bar">
+                        <div class="xp-fill" id="xpFill" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-danger" onclick="battle()" id="battleBtn">
+                        ⚔️ Savaş Yap
+                    </button>
+                    <button class="btn btn-info" onclick="heal()" id="healBtn">
+                        💚 İyileş
+                    </button>
+                </div>
+
+                <div id="gameOverMessage" class="game-over hidden">
+                    💀 Kahraman Yenilmiş!
+                </div>
+
+                <button class="btn btn-secondary" onclick="createNewHero()">
+                    Yeni Kahraman Oluştur
+                </button>
+            </div>
+        </div>
+
+        <div class="app-footer">
+            <p>🚀 Sui Move Smart Contract ile yapılmıştır</p>
+            <p class="package-info">
+                Package ID: <code>YOUR_PACKAGE_ID_HERE</code>
+            </p>
+            <p style="margin-top: 20px; font-size: 0.85em;">
+                💡 Kontrat Testnet'e publish edildikten sonra Package ID'yi yukarıya yapıştırın
+            </p>
+        </div>
+    </div>
+
+    <script>
+        let currentHero = null;
+        let isLoading = false;
+
+        function connectWallet() {
+            document.getElementById('walletSection').classList.add('hidden');
+            document.getElementById('heroCreation').classList.remove('hidden');
+            alert('Cüzdan bağlandı! (Demo modda)');
+        }
+
+        function createHero() {
+            const heroName = document.getElementById('heroNameInput').value.trim();
+            if (!heroName) {
+                alert('Lütfen kahraman adı girin!');
+                return;
+            }
+
+            isLoading = true;
+            setTimeout(() => {
+                currentHero = {
+                    name: heroName,
+                    hp: 100,
+                    xp: 0,
+                    level: 1
+                };
+                updateUI();
+                document.getElementById('heroCreation').classList.add('hidden');
+                document.getElementById('heroPanel').classList.remove('hidden');
+                isLoading = false;
+            }, 800);
+        }
+
+        function createNewHero() {
+            currentHero = null;
+            document.getElementById('heroNameInput').value = '';
+            document.getElementById('heroCreation').classList.remove('hidden');
+            document.getElementById('heroPanel').classList.add('hidden');
+        }
+
+        function battle() {
+            if (!currentHero || isLoading || currentHero.hp < 20) return;
+
+            isLoading = true;
+            document.getElementById('battleBtn').disabled = true;
+            document.getElementById('healBtn').disabled = true;
+
+            setTimeout(() => {
+                currentHero.xp += 20;
+                currentHero.hp = Math.max(0, currentHero.hp - 20);
+
+                if (currentHero.xp >= 100) {
+                    currentHero.level += 1;
+                    currentHero.xp = 0;
+                    currentHero.hp = 100;
+                }
+
+                updateUI();
+                isLoading = false;
+                document.getElementById('battleBtn').disabled = false;
+                document.getElementById('healBtn').disabled = false;
+            }, 600);
+        }
+
+        function heal() {
+            if (!currentHero || isLoading) return;
+
+            isLoading = true;
+            document.getElementById('battleBtn').disabled = true;
+            document.getElementById('healBtn').disabled = true;
+
+            setTimeout(() => {
+                currentHero.hp = 100;
+                updateUI();
+                isLoading = false;
+                document.getElementById('battleBtn').disabled = false;
+                document.getElementById('healBtn').disabled = false;
+            }, 400);
+        }
+
+        function updateUI() {
+            if (!currentHero) return;
+
+            document.getElementById('heroName').textContent = currentHero.name;
+            document.getElementById('heroHp').textContent = `${currentHero.hp}/100`;
+            document.getElementById('heroXp').textContent = `${currentHero.xp}/100`;
+            document.getElementById('heroLevel').textContent = currentHero.level;
+
+            document.getElementById('hpFill').style.width = `${currentHero.hp}%`;
+            document.getElementById('xpFill').style.width = `${currentHero.xp}%`;
+
+            const gameOverMsg = document.getElementById('gameOverMessage');
+            if (currentHero.hp <= 0) {
+                gameOverMsg.classList.remove('hidden');
+                document.getElementById('battleBtn').disabled = true;
+            } else {
+                gameOverMsg.classList.add('hidden');
+                document.getElementById('battleBtn').disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
