@@ -2,43 +2,50 @@ module battle_and_level_up::game {
     use sui::object::{Self, UID};
     use sui::tx_context::{Self, TxContext};
     use sui::transfer;
-    use std::string::{Self, String, utf8};
+    use std::string::{Self, String};
 
     /* --- CHAPTER 1: DATA STRUCTURE --- */
     /// Mission: Define the attributes a Hero should have.
-    /// Requirements: id, name, hp, xp, level. 
-    /// Remember to use 'key' and 'store' abilities for a Sui Object!
+    /// Requirements: 
+    /// 1. The struct must have 'key' and 'store' abilities.
+    /// 2. Fields: id (UID), name (String), hp (u64), xp (u64), level (u64).
     public struct Hero has key, store {
         id: UID,
-        // GÖREV: Buraya name, hp, xp ve level alanlarını ekle.
+        // TODO: Add name, hp, xp, and level fields here.
         
     }
 
     /* --- CHAPTER 2: MINTING (CREATION) --- */
     /// Mission: Create a new Hero object and transfer it to the sender.
-    public entry fun create_hero(name: vector<u8>, ctx: &mut TxContext) {
-        // 1. GÖREV: Yeni bir Hero nesnesi oluştur (Varsayılan: HP 100, XP 0, Level 1)
+    /// Steps:
+    /// 1. Initialize a Hero with: HP = 100, XP = 0, Level = 1.
+    /// 2. Use 'transfer::public_transfer' to send the hero to the tx sender.
+    public entry fun create_hero(name_bytes: vector<u8>, ctx: &mut TxContext) {
+        // TODO: Create the Hero instance
         
-        // 2. GÖREV: Oluşturulan kahramanı işlemi başlatan kişiye (sender) transfer et.
+        // TODO: Transfer the Hero to the sender (use tx_context::sender(ctx))
 
     }
 
     /* --- CHAPTER 3: BATTLE LOGIC --- */
-    /// Mission: Implement XP gain, HP loss, and level-up checks.
+    /// Mission: Handle combat results and level-up mechanics.
+    /// Steps:
+    /// 1. Safety Check: Ensure hero.hp is at least 20 using 'assert!'.
+    /// 2. Simulation: Increase XP by 50 and decrease HP by 20.
+    /// 3. Level Up: If XP >= 100, increment level, reset XP to 0, and refill HP to 100.
     public entry fun battle(hero: &mut Hero) {
-        // 1. GÖREV: Güvenlik Kontrolü ekle! Kahramanın HP'si 20'den azsa savaşamasın. (assert! kullan)
+        // TODO: Add an assertion to check if HP >= 20
         
-        // 2. GÖREV: Savaş sonucunda XP'yi 50 artır, HP'yi 20 azalt.
+        // TODO: Update XP and HP values
         
-        // 3. GÖREV: Seviye Atlama Kontrolü! 
-        // Eğer XP >= 100 ise; Level'ı 1 artır, XP'yi sıfırla ve HP'yi 100'e (full) getir.
+        // TODO: Check for level up (if XP >= 100)
 
     }
 
     /* --- CHAPTER 4: HEALING --- */
     /// Mission: Restore the hero's health (HP) to its maximum value.
     public entry fun heal(hero: &mut Hero) {
-        // GÖREV: Kahramanın HP değerini tekrar 100'e eşitle.
+        // TODO: Reset the hero's HP to 100
         
     }
 }
