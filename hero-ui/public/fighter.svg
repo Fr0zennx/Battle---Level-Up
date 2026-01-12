@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300" fill="none">
+  <!-- Body Shadow -->
+  <ellipse cx="100" cy="290" rx="50" ry="10" fill="rgba(0,0,0,0.3)" filter="blur(5px)"/>
+  
+  <!-- Legs -->
+  <path d="M85 200 L75 280 L65 280 L60 285 L80 285 L90 210 Z" fill="#1a1a2e"/>
+  <path d="M115 200 L125 280 L135 280 L140 285 L120 285 L110 210 Z" fill="#1a1a2e"/>
+  
+  <!-- Shoes -->
+  <path d="M55 280 L80 280 L82 290 L50 290 Z" fill="#0f0f1a"/>
+  <path d="M120 280 L145 280 L150 290 L118 290 Z" fill="#0f0f1a"/>
+  
+  <!-- Torso / Suit -->
+  <path d="M70 100 L60 200 L140 200 L130 100 Z" fill="#16213e"/>
+  
+  <!-- Suit Details -->
+  <path d="M95 100 L92 200 M105 100 L108 200" stroke="#0f0f1a" stroke-width="2"/>
+  
+  <!-- Tie -->
+  <path d="M100 85 L95 95 L100 180 L105 95 L100 85 Z" fill="#dc2626"/>
+  
+  <!-- Shirt Collar -->
+  <path d="M85 80 L100 95 L115 80 L110 75 L100 85 L90 75 Z" fill="#f8fafc"/>
+  
+  <!-- Jacket Lapels -->
+  <path d="M70 100 L90 80 L100 95 L85 115 Z" fill="#1e3a5f"/>
+  <path d="M130 100 L110 80 L100 95 L115 115 Z" fill="#1e3a5f"/>
+  
+  <!-- Arms -->
+  <path d="M70 100 L45 150 L40 200 L55 205 L65 160 L75 120 Z" fill="#16213e"/>
+  <path d="M130 100 L155 150 L160 200 L145 205 L135 160 L125 120 Z" fill="#16213e"/>
+  
+  <!-- Hands -->
+  <circle cx="47" cy="205" r="12" fill="#e2c4a6"/>
+  <circle cx="153" cy="205" r="12" fill="#e2c4a6"/>
+  
+  <!-- Weapon in hand -->
+  <rect x="145" y="180" width="8" height="50" rx="2" fill="#374151" transform="rotate(15 149 205)"/>
+  <rect x="140" y="175" width="18" height="12" rx="2" fill="#1f2937" transform="rotate(15 149 181)"/>
+  
+  <!-- Head -->
+  <ellipse cx="100" cy="50" rx="35" ry="40" fill="#e2c4a6"/>
+  
+  <!-- Bald head shine -->
+  <ellipse cx="90" cy="30" rx="15" ry="10" fill="rgba(255,255,255,0.2)"/>
+  
+  <!-- Ears -->
+  <ellipse cx="65" cy="50" rx="8" ry="12" fill="#e2c4a6"/>
+  <ellipse cx="135" cy="50" rx="8" ry="12" fill="#e2c4a6"/>
+  
+  <!-- Face Details -->
+  <!-- Eyebrows -->
+  <path d="M78 40 L92 38" stroke="#1a1a2e" stroke-width="3" stroke-linecap="round"/>
+  <path d="M108 38 L122 40" stroke="#1a1a2e" stroke-width="3" stroke-linecap="round"/>
+  
+  <!-- Eyes -->
+  <ellipse cx="85" cy="48" rx="6" ry="4" fill="#1a1a2e"/>
+  <ellipse cx="115" cy="48" rx="6" ry="4" fill="#1a1a2e"/>
+  <circle cx="86" cy="47" r="1.5" fill="#ffffff"/>
+  <circle cx="116" cy="47" r="1.5" fill="#ffffff"/>
+  
+  <!-- Nose -->
+  <path d="M100 50 L97 62 L103 62 Z" fill="#d4a574"/>
+  
+  <!-- Mouth -->
+  <path d="M92 70 Q100 74 108 70" stroke="#8b6c5c" stroke-width="2" fill="none"/>
+  
+  <!-- Neck -->
+  <rect x="90" y="85" width="20" height="15" fill="#e2c4a6"/>
+  
+  <!-- Barcode on back of head (signature hitman style) -->
+  <g transform="translate(85, 15)">
+    <rect x="0" y="0" width="2" height="8" fill="#1a1a2e"/>
+    <rect x="4" y="0" width="1" height="8" fill="#1a1a2e"/>
+    <rect x="7" y="0" width="3" height="8" fill="#1a1a2e"/>
+    <rect x="12" y="0" width="1" height="8" fill="#1a1a2e"/>
+    <rect x="15" y="0" width="2" height="8" fill="#1a1a2e"/>
+    <rect x="19" y="0" width="1" height="8" fill="#1a1a2e"/>
+    <rect x="22" y="0" width="3" height="8" fill="#1a1a2e"/>
+    <rect x="27" y="0" width="2" height="8" fill="#1a1a2e"/>
+  </g>
+</svg>

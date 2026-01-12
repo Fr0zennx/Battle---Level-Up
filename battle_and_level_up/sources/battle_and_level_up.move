@@ -6,53 +6,39 @@ module battle_and_level_up::game {
 
     /* --- CHAPTER 1: DATA STRUCTURE --- */
     /// Mission: Define the attributes a Hero should have.
-    // Nesnenin hem taşınabilir (store) hem de global depolama alanı olabilir (key) olduğunu belirttik.
+    /// Requirements: id, name, hp, xp, level. 
+    /// Remember to use 'key' and 'store' abilities for a Sui Object!
     public struct Hero has key, store {
         id: UID,
-        name: String,
-        hp: u64,
-        xp: u64,
-        level: u64,
+        // GÖREV: Buraya name, hp, xp ve level alanlarını ekle.
+        
     }
 
     /* --- CHAPTER 2: MINTING (CREATION) --- */
     /// Mission: Create a new Hero object and transfer it to the sender.
     public entry fun create_hero(name: vector<u8>, ctx: &mut TxContext) {
-        // 1. Yeni bir Hero nesnesini varsayılan değerlerle başlattık.
-        let hero = Hero {
-            id: object::new(ctx),
-            name: string::utf8(name),
-            hp: 100,      // Başlangıç Canı
-            xp: 0,        // Başlangıç Tecrübesi
-            level: 1,     // Başlangıç Seviyesi
-        };
+        // 1. GÖREV: Yeni bir Hero nesnesi oluştur (Varsayılan: HP 100, XP 0, Level 1)
         
-        // 2. Kahramanı işlemi başlatan kişiye (sender) transfer ettik.
-        transfer::public_transfer(hero, tx_context::sender(ctx));
+        // 2. GÖREV: Oluşturulan kahramanı işlemi başlatan kişiye (sender) transfer et.
+
     }
 
     /* --- CHAPTER 3: BATTLE LOGIC --- */
     /// Mission: Implement XP gain, HP loss, and level-up checks.
     public entry fun battle(hero: &mut Hero) {
-        // 1. Güvenlik Kontrolü: Kahramanın savaşmak için yeterli canı (HP) var mı? (En az 20 olmalı)
-        assert!(hero.hp >= 20, 0); // HP 20'den düşükse işlem iptal edilir (Error code: 0)
+        // 1. GÖREV: Güvenlik Kontrolü ekle! Kahramanın HP'si 20'den azsa savaşamasın. (assert! kullan)
         
-        // 2. Savaş Simülasyonu: XP artışı ve HP kaybı
-        hero.xp = hero.xp + 50;  // Her savaş 50 XP kazandırır
-        hero.hp = hero.hp - 20;  // Her savaş 20 HP götürür
+        // 2. GÖREV: Savaş sonucunda XP'yi 50 artır, HP'yi 20 azalt.
         
-        // 3. Level Up Koşulu: XP 100'e ulaştığında seviye atla
-        if (hero.xp >= 100) {
-            hero.level = hero.level + 1; // Seviye artır
-            hero.xp = 0;                 // XP'yi sıfırla
-            hero.hp = 100;               // Seviye atlayınca canı tamamen doldur
-        }
+        // 3. GÖREV: Seviye Atlama Kontrolü! 
+        // Eğer XP >= 100 ise; Level'ı 1 artır, XP'yi sıfırla ve HP'yi 100'e (full) getir.
+
     }
 
     /* --- CHAPTER 4: HEALING --- */
     /// Mission: Restore the hero's health (HP) to its maximum value.
     public entry fun heal(hero: &mut Hero) {
-        // Kahramanın HP alanını tekrar maksimum olan 100'e güncelledik.
-        hero.hp = 100;
+        // GÖREV: Kahramanın HP değerini tekrar 100'e eşitle.
+        
     }
-}           
+}

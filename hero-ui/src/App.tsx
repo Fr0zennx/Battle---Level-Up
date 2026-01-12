@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, CSSProperties } from 'react'
 import './App.css'
-import { useCurrentAccount, useSignAndExecuteTransaction, ConnectButton, useSuiClient, useSuiClientQuery } from '@mysten/dapp-kit'
+import { useCurrentAccount, useSignAndExecuteTransaction, ConnectButton, useSuiClient, useSuiClientQuery, useDisconnectWallet } from '@mysten/dapp-kit'
 import { Transaction } from '@mysten/sui/transactions'
 import LightPillar from './LightPillar'
 import { TypewriterText } from './components/TypewriterEffect'
@@ -189,7 +189,103 @@ const cssAnimations = `
     10%, 30%, 50%, 70%, 90% { transform: translateX(-10px) rotate(-2deg); }
     20%, 40%, 60%, 80% { transform: translateX(10px) rotate(2deg); }
   }
+  @keyframes fireballFly {
+    0% { left: 15%; opacity: 1; transform: translateY(-50%) scale(1); }
+    50% { opacity: 1; transform: translateY(-50%) scale(1.3); }
+    90% { opacity: 1; }
+    100% { left: 80%; opacity: 0; transform: translateY(-50%) scale(0.5); }
+  }
+  @keyframes fireballGlow {
+    0%, 100% { box-shadow: 0 0 20px #ff6600, 0 0 40px #ff4400, 0 0 60px #ff2200; }
+    50% { box-shadow: 0 0 30px #ff8800, 0 0 60px #ff6600, 0 0 90px #ff4400; }
+  }
+  @keyframes fireTrail {
+    0% { opacity: 0.8; transform: scale(1); }
+    100% { opacity: 0; transform: scale(0.3); }
+  }
+  @keyframes explosion {
+    0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+    50% { transform: translate(-50%, -50%) scale(2); opacity: 0.8; }
+    100% { transform: translate(-50%, -50%) scale(3); opacity: 0; }
+  }
 `
+
+// ============= FIREBALL COMPONENT =============
+const Fireball = ({ isActive, onComplete }: { isActive: boolean; onComplete: () => void }) => {
+  if (!isActive) return null
+  
+  return (
+    <div style={{
+      position: 'absolute',
+      top: '50%',
+      left: '15%',
+      zIndex: 100,
+      animation: 'fireballFly 0.8s ease-in forwards',
+      pointerEvents: 'none'
+    }} onAnimationEnd={onComplete}>
+      {/* Main fireball */}
+      <div style={{
+        width: '60px',
+        height: '60px',
+        borderRadius: '50%',
+        background: 'radial-gradient(circle at 30% 30%, #fff 0%, #ffcc00 20%, #ff6600 50%, #ff3300 80%, #cc0000 100%)',
+        animation: 'fireballGlow 0.15s infinite alternate',
+        position: 'relative'
+      }}>
+        {/* Inner core */}
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '25px',
+          height: '25px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, #fff 0%, #ffffcc 50%, #ffcc00 100%)',
+          filter: 'blur(2px)'
+        }} />
+      </div>
+      
+      {/* Fire trail */}
+      {[...Array(5)].map((_, i) => (
+        <div key={i} style={{
+          position: 'absolute',
+          top: '50%',
+          left: `${-20 - i * 15}px`,
+          transform: 'translateY(-50%)',
+          width: `${40 - i * 6}px`,
+          height: `${40 - i * 6}px`,
+          borderRadius: '50%',
+          background: `radial-gradient(circle, rgba(255,${100 + i * 30},0,${0.8 - i * 0.15}) 0%, transparent 70%)`,
+          animation: `fireTrail ${0.3 + i * 0.1}s ease-out forwards`,
+          animationDelay: `${i * 0.05}s`
+        }} />
+      ))}
+    </div>
+  )
+}
+
+const Explosion = ({ isActive }: { isActive: boolean }) => {
+  if (!isActive) return null
+  
+  return (
+    <div style={{
+      position: 'absolute',
+      top: '50%',
+      right: '18%',
+      zIndex: 99,
+      pointerEvents: 'none'
+    }}>
+      <div style={{
+        width: '120px',
+        height: '120px',
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,200,0,0.8) 30%, rgba(255,100,0,0.6) 60%, transparent 100%)',
+        animation: 'explosion 0.5s ease-out forwards'
+      }} />
+    </div>
+  )
+}
 
 // ============= COMPONENTS =============
 const NotificationList = ({ notifications }: { notifications: Notification[] }) => (
@@ -236,20 +332,71 @@ const HealthBar = ({ name, hp, level, xp, isEnemy = false }: {
   </div>
 )
 
-const Character = ({ icon, level, isShaking, badgePosition }: {
-  icon: string; level: number; isShaking: boolean; badgePosition: 'left' | 'right'
+const Character = ({ level, isShaking, isEnemy = false }: {
+  level: number; isShaking: boolean; isEnemy?: boolean
 }) => (
-  <div style={{ position: 'relative', zIndex: 10, animation: isShaking ? 'shake 0.5s ease-in-out' : 'none' }}>
-    <div style={styles.characterBox}>
-      <div style={{ fontSize: '80px', color: '#64748b', fontWeight: 'bold' }}>{icon}</div>
-      <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at center, rgba(100,116,139,0.1) 0%, transparent 70%)', pointerEvents: 'none' }} />
-    </div>
+  <div style={{ 
+    position: 'relative', 
+    zIndex: 10, 
+    animation: isShaking ? 'shake 0.5s ease-in-out' : 'none'
+  }}>
     <div style={{
-      position: 'absolute', bottom: '-20px', left: '50%', transform: 'translateX(-50%)',
-      width: '100px', height: '20px', background: 'radial-gradient(ellipse, rgba(0,0,0,0.3) 0%, transparent 70%)',
+      width: '160px',
+      height: '240px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      position: 'relative'
+    }}>
+      {/* Character SVG */}
+      <img 
+        src="/fighter.svg" 
+        alt="Fighter"
+        style={{
+          width: '160px',
+          height: '240px',
+          objectFit: 'contain',
+          transform: isEnemy ? 'scaleX(-1)' : 'none',
+          filter: isEnemy 
+            ? 'hue-rotate(340deg) saturate(1.5) brightness(0.95)' 
+            : 'hue-rotate(0deg)',
+          transition: 'all 0.3s ease'
+        }}
+      />
+      
+      {/* Glow Effect */}
+      <div style={{
+        position: 'absolute',
+        bottom: '40px',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        width: '100px',
+        height: '100px',
+        background: isEnemy 
+          ? 'radial-gradient(circle, rgba(220,38,38,0.4) 0%, transparent 70%)' 
+          : 'radial-gradient(circle, rgba(59,130,246,0.4) 0%, transparent 70%)',
+        filter: 'blur(20px)',
+        pointerEvents: 'none',
+        zIndex: -1
+      }} />
+    </div>
+    
+    {/* Shadow */}
+    <div style={{
+      position: 'absolute', bottom: '-10px', left: '50%', transform: 'translateX(-50%)',
+      width: '100px', height: '20px', 
+      background: 'radial-gradient(ellipse, rgba(0,0,0,0.5) 0%, transparent 70%)',
       borderRadius: '50%', filter: 'blur(8px)'
     }} />
-    <div style={{ ...styles.levelBadge, [badgePosition]: '-8px' }}>LV {level}</div>
+    
+    {/* Level Badge */}
+    <div style={{ 
+      ...styles.levelBadge, 
+      [isEnemy ? 'left' : 'right']: '-12px',
+      top: '30px',
+      background: isEnemy ? '#dc2626' : '#3b82f6',
+      borderColor: isEnemy ? '#f87171' : '#60a5fa'
+    }}>LV {level}</div>
   </div>
 )
 
@@ -272,6 +419,7 @@ function App() {
   const account = useCurrentAccount()
   const suiClient = useSuiClient()
   const { mutate: signAndExecute } = useSignAndExecuteTransaction()
+  const { mutate: disconnectWallet } = useDisconnectWallet()
 
   const [hero, setHero] = useState<Hero | null>(null)
   const [heroName, setHeroName] = useState('')
@@ -280,6 +428,8 @@ function App() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [enemyHp, setEnemyHp] = useState(MAX_HP)
   const [isShaking, setIsShaking] = useState(false)
+  const [isFireballActive, setIsFireballActive] = useState(false)
+  const [isExplosionActive, setIsExplosionActive] = useState(false)
 
   const { data: heroObjectData, refetch: refetchHeroData } = useSuiClientQuery(
     'getObject',
@@ -402,16 +552,30 @@ function App() {
     }
 
     setLoading(true)
-    setIsShaking(true)
+    setIsFireballActive(true)
     const damage = Math.floor(Math.random() * 21) + 10
-    setEnemyHp(prev => Math.max(0, prev - damage))
+
+    // Fireball animasyonu bittikten sonra işlemleri yap
+    setTimeout(() => {
+      setIsExplosionActive(true)
+      setIsShaking(true)
+      setEnemyHp(prev => Math.max(0, prev - damage))
+      
+      setTimeout(() => {
+        setIsExplosionActive(false)
+        setIsShaking(false)
+      }, 500)
+    }, 800)
 
     executeTransaction('battle', hero.id, () => {
-      setTimeout(() => setIsShaking(false), 600)
       setLoading(false)
       addNotification(`⚔️ Savaş Kazanıldı! 💥 Düşmana ${damage} hasar! ⭐ XP +20 | ❤️ HP -20`, 'battle', 2500)
     }, 'Savaş başarısız')
   }, [hero, account, loading, executeTransaction, addNotification])
+
+  const handleFireballComplete = useCallback(() => {
+    setIsFireballActive(false)
+  }, [])
 
   const handleHeal = useCallback(() => {
     if (!hero || !account || loading) return
@@ -521,8 +685,12 @@ function App() {
                 <div style={{ position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '90%', height: '3px', background: 'linear-gradient(90deg, transparent, #475569 30%, #64748b 50%, #475569 70%, transparent)', borderRadius: '2px' }} />
                 <div style={{ position: 'absolute', bottom: '-15px', left: '50%', transform: 'translateX(-50%)', width: '70%', height: '30px', background: 'radial-gradient(ellipse, rgba(0,0,0,0.4) 0%, transparent 70%)', filter: 'blur(15px)' }} />
                 
-                <Character icon="⚔" level={hero.level} isShaking={isShaking} badgePosition="right" />
-                <Character icon="◆" level={enemyLevel} isShaking={isShaking} badgePosition="left" />
+                {/* Fireball Animation */}
+                <Fireball isActive={isFireballActive} onComplete={handleFireballComplete} />
+                <Explosion isActive={isExplosionActive} />
+                
+                <Character level={hero.level} isShaking={isShaking} />
+                <Character level={enemyLevel} isShaking={isShaking} isEnemy />
               </div>
             </div>
 
@@ -535,6 +703,39 @@ function App() {
               </div>
               {hero.hp <= 0 && <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '18px', fontWeight: '600', color: '#ef4444', letterSpacing: '2px' }}>DEFEATED</div>}
             </div>
+
+            {/* Disconnect Button - Bottom Right */}
+            <button
+              onClick={() => disconnectWallet()}
+              style={{
+                position: 'fixed',
+                bottom: '20px',
+                right: '20px',
+                padding: '10px 20px',
+                background: 'rgba(30, 41, 59, 0.9)',
+                border: '1px solid #475569',
+                borderRadius: '8px',
+                color: '#94a3b8',
+                fontSize: '12px',
+                fontWeight: '500',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                backdropFilter: 'blur(10px)',
+                zIndex: 1000
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(220, 38, 38, 0.8)'
+                e.currentTarget.style.borderColor = '#dc2626'
+                e.currentTarget.style.color = '#ffffff'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(30, 41, 59, 0.9)'
+                e.currentTarget.style.borderColor = '#475569'
+                e.currentTarget.style.color = '#94a3b8'
+              }}
+            >
+              🔓 Disconnect
+            </button>
           </>
         )}
       </div>
