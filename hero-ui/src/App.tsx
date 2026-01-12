@@ -3,6 +3,7 @@ import './App.css'
 import { useCurrentAccount, useSignAndExecuteTransaction, ConnectButton, useSuiClient, useSuiClientQuery } from '@mysten/dapp-kit'
 import { Transaction } from '@mysten/sui/transactions'
 import LightPillar from './LightPillar'
+import { TypewriterText } from './components/TypewriterEffect'
 
 // ============= CONSTANTS =============
 const PACKAGE_ID = "0x502257663195f5d5c0ff3f3ea8936727ea5c8914e265e0008e26659cac7cbe08"
@@ -130,13 +131,55 @@ const getHpColor = (hp: number, isEnemy = false) => {
   return '#ef4444'
 }
 
-const parseHeroData = (fields: any, id: string): Hero => ({
-  id,
-  name: fields.name || 'Unknown',
-  hp: fields.hp ?? MAX_HP,
-  xp: fields.xp ?? 0,
-  level: fields.level ?? 1
-})
+// Blockchain'den gelen name field'ını string'e çevir
+const parseName = (name: any): string => {
+  if (!name) return 'Unknown'
+  
+  // Eğer zaten string ise direkt döndür
+  if (typeof name === 'string') return name
+  
+  // Eğer byte array ise (number[] veya Uint8Array) string'e çevir
+  if (Array.isArray(name)) {
+    return String.fromCharCode(...name)
+  }
+  
+  // Sui Move String tipi - genellikle { bytes: string } veya doğrudan UTF-8 string olarak gelir
+  if (typeof name === 'object') {
+    // Eğer bytes property'si varsa ve string ise (hex veya UTF-8)
+    if (name.bytes) {
+      if (typeof name.bytes === 'string') {
+        // Hex string olabilir, UTF-8 decode dene
+        try {
+          return decodeURIComponent(escape(name.bytes))
+        } catch {
+          return name.bytes
+        }
+      }
+      if (Array.isArray(name.bytes)) {
+        return String.fromCharCode(...name.bytes)
+      }
+    }
+    
+    // Sui SDK bazen direkt string olarak serialize eder
+    if (name.toString && name.toString() !== '[object Object]') {
+      return name.toString()
+    }
+  }
+  
+  console.log('Unknown name format:', name)
+  return 'Unknown'
+}
+
+const parseHeroData = (fields: any, id: string): Hero => {
+  console.log('Parsing hero, name field:', fields.name, 'type:', typeof fields.name)
+  return {
+    id,
+    name: parseName(fields.name),
+    hp: Number(fields.hp) || MAX_HP,
+    xp: Number(fields.xp) || 0,
+    level: Number(fields.level) || 1
+  }
+}
 
 // ============= CSS ANIMATIONS =============
 const cssAnimations = `
@@ -252,12 +295,15 @@ function App() {
 
   const executeTransaction = useCallback((
     target: string,
-    args: any[],
+    heroId: string,
     onSuccess: (result: any) => void,
     errorMessage: string
   ) => {
     const tx = new Transaction()
-    tx.moveCall({ target: `${PACKAGE_ID}::${MODULE_NAME}::${target}`, arguments: args })
+    tx.moveCall({ 
+      target: `${PACKAGE_ID}::${MODULE_NAME}::${target}`, 
+      arguments: [tx.object(heroId)] 
+    })
     
     signAndExecute({ transaction: tx }, {
       onSuccess: (result) => {
@@ -297,9 +343,17 @@ function App() {
           options: { showContent: true }
         })
 
-        if (data?.[0]?.data?.content?.dataType === 'moveObject') {
-          const fields = data[0].data.content.fields as any
-          setHero(parseHeroData(fields, data[0].data.objectId))
+        console.log('=== HERO DATA DEBUG ===')
+        console.log('Total heroes found:', data?.length || 0)
+
+        // En son oluşturulan hero'yu al (listenin sonundaki)
+        const lastHeroData = data?.[data.length - 1]
+        
+        if (lastHeroData?.data?.content?.dataType === 'moveObject') {
+          const fields = lastHeroData.data.content.fields as any
+          console.log('Using hero:', lastHeroData.data.objectId)
+          console.log('Fields:', JSON.stringify(fields, null, 2))
+          setHero(parseHeroData(fields, lastHeroData.data.objectId))
         } else {
           setHero(null)
         }
@@ -352,7 +406,7 @@ function App() {
     const damage = Math.floor(Math.random() * 21) + 10
     setEnemyHp(prev => Math.max(0, prev - damage))
 
-    executeTransaction('battle', [new Transaction().object(hero.id)], () => {
+    executeTransaction('battle', hero.id, () => {
       setTimeout(() => setIsShaking(false), 600)
       setLoading(false)
       addNotification(`⚔️ Savaş Kazanıldı! 💥 Düşmana ${damage} hasar! ⭐ XP +20 | ❤️ HP -20`, 'battle', 2500)
@@ -363,7 +417,7 @@ function App() {
     if (!hero || !account || loading) return
     setLoading(true)
 
-    executeTransaction('heal', [new Transaction().object(hero.id)], () => {
+    executeTransaction('heal', hero.id, () => {
       setLoading(false)
       addNotification(`💚 İyileşildi! HP 100'e döndürüldü!`, 'success', 2000)
     }, 'İyileşme başarısız')
@@ -448,8 +502,18 @@ function App() {
             {/* Arena */}
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 48px', minHeight: '500px' }}>
               <div style={{ width: '100%', maxWidth: '1200px', display: 'flex', justifyContent: 'space-between', marginBottom: '40px', padding: '0 100px' }}>
-                <h2 style={{ fontSize: '28px', fontWeight: '700', color: '#e2e8f0', textTransform: 'uppercase', letterSpacing: '2px' }}>{hero.name}</h2>
-                <h2 style={{ fontSize: '28px', fontWeight: '700', color: '#e2e8f0', letterSpacing: '2px' }}>BOT ENEMY</h2>
+                <TypewriterText
+                  text={hero.name.toUpperCase()}
+                  style={{ fontSize: '28px', fontWeight: '700', color: '#e2e8f0', letterSpacing: '2px' }}
+                  delay={0.3}
+                  charDelay={0.06}
+                />
+                <TypewriterText
+                  text="BOT ENEMY"
+                  style={{ fontSize: '28px', fontWeight: '700', color: '#e2e8f0', letterSpacing: '2px' }}
+                  delay={0.3}
+                  charDelay={0.06}
+                />
               </div>
 
               <div style={{ position: 'relative', width: '100%', maxWidth: '1200px', height: '300px', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', padding: '0 100px' }}>
@@ -468,10 +532,6 @@ function App() {
                 <ActionButton onClick={handleBattle} disabled={!canBattle} loading={loading}
                   label={hero.hp < MIN_HP_FOR_BATTLE ? 'INSUFFICIENT HP' : 'FIGHT'} loadingLabel="FIGHTING..." />
                 <ActionButton onClick={handleHeal} disabled={loading} loading={loading} label="HEAL" loadingLabel="HEALING..." />
-                <button onClick={() => setHero(null)} disabled={loading} style={{
-                  padding: '14px 32px', background: 'transparent', border: '1px solid #334155', borderRadius: '6px',
-                  color: '#94a3b8', fontWeight: '500', fontSize: '13px', cursor: loading ? 'not-allowed' : 'pointer', transition: 'all 0.2s'
-                }}>NEW FIGHTER</button>
               </div>
               {hero.hp <= 0 && <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '18px', fontWeight: '600', color: '#ef4444', letterSpacing: '2px' }}>DEFEATED</div>}
             </div>
